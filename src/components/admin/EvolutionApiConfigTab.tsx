@@ -49,9 +49,9 @@ export default function EvolutionApiConfigTab() {
         .from('evolution_api_global_config')
         .select('*')
         .eq('ativo', true)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) throw error;
       
       if (data) {
         setConfig(data);
