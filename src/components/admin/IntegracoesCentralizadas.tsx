@@ -25,6 +25,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import EvolutionApiConfigTab from './EvolutionApiConfigTab';
 
 interface WebhookConfig {
   id: string;
@@ -335,7 +336,7 @@ export default function IntegracoesCentralizadas() {
     return matchTipo && matchStatus;
   });
 
-  const logsFiltrados = selectedWebhook 
+  const logsFiltrados = selectedWebhook && selectedWebhook !== 'all'
     ? logs.filter(log => log.webhook_id === selectedWebhook)
     : logs;
 
@@ -354,12 +355,17 @@ export default function IntegracoesCentralizadas() {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="visao-geral" className="space-y-6">
+      <Tabs defaultValue="evolution-api" className="space-y-6">
         <TabsList>
+          <TabsTrigger value="evolution-api">Evolution API</TabsTrigger>
           <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
           <TabsTrigger value="logs">Logs Detalhados</TabsTrigger>
           <TabsTrigger value="teste">Testador de Webhooks</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="evolution-api">
+          <EvolutionApiConfigTab />
+        </TabsContent>
 
         <TabsContent value="visao-geral">
           <div className="space-y-6">
@@ -481,8 +487,8 @@ export default function IntegracoesCentralizadas() {
                   <SelectTrigger className="w-64">
                     <SelectValue placeholder="Filtrar por webhook" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Todos os webhooks</SelectItem>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os webhooks</SelectItem>
                     {webhooks.map(webhook => (
                       <SelectItem key={webhook.id} value={webhook.id}>
                         {webhook.nome}
