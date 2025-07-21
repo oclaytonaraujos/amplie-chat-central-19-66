@@ -87,7 +87,7 @@ export function useWhatsAppIntegration() {
     try {
       setLoading(true);
       
-      // Get global config for API access
+      // Usar EvolutionApiGlobalService para gerenciamento de instâncias
       const { data: globalConfig } = await supabase
         .from('evolution_api_global_config')
         .select('api_key, server_url')
@@ -97,17 +97,20 @@ export function useWhatsAppIntegration() {
       if (!globalConfig) {
         throw new Error('Configuração global Evolution API não encontrada');
       }
-      
-      const response = await fetch(`${globalConfig.server_url}/instance/fetchInstances`, {
-        headers: {
-          'apikey': globalConfig.api_key
-        }
-      });
-      const statusData = await response.json();
 
-      if (!response.ok) {
-        throw new Error(`Erro na Evolution API: ${statusData.message}`);
-      }
+      // Importar dinamicamente o serviço global
+      const { EvolutionApiGlobalService } = await import('@/services/evolution-api');
+      const globalService = new EvolutionApiGlobalService(
+        globalConfig.server_url,
+        globalConfig.api_key
+      );
+
+      // Usar a conexão global para buscar instâncias (CRUD operation)
+      const instancesData = await globalService.fetchInstances();
+
+      logger.info('Instâncias sincronizadas via API Global', {
+        component: 'useWhatsAppIntegration'
+      });
 
       await loadConnections();
       toast({
@@ -115,6 +118,10 @@ export function useWhatsAppIntegration() {
         description: "Conexões WhatsApp sincronizadas com sucesso",
       });
     } catch (error) {
+      logger.error('Erro na sincronização via API Global', {
+        component: 'useWhatsAppIntegration'
+      }, error as Error);
+      
       toast({
         title: "Erro na sincronização",
         description: "Não foi possível sincronizar as conexões WhatsApp",

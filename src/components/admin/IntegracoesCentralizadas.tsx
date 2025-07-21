@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import EvolutionApiConfigTab from './EvolutionApiConfigTab';
+import EvolutionApiArchitecture from './EvolutionApiArchitecture';
 import IntegrationCard from './integrations/IntegrationCard';
 import MetricsOverview from './integrations/MetricsOverview';
 import ActivityLogs from './integrations/ActivityLogs';
@@ -290,8 +291,12 @@ export default function IntegracoesCentralizadas() {
         </Button>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+      <Tabs defaultValue="architecture" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="architecture" className="flex items-center gap-2">
+            <Workflow className="w-4 h-4" />
+            Arquitetura
+          </TabsTrigger>
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             Visão Geral
@@ -313,6 +318,10 @@ export default function IntegracoesCentralizadas() {
             Testador
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="architecture" className="space-y-6">
+          <EvolutionApiArchitecture />
+        </TabsContent>
 
         <TabsContent value="overview" className="space-y-6">
           <MetricsOverview data={metricsData} />

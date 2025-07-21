@@ -9,6 +9,161 @@ import {
   EvolutionApiResponse 
 } from '@/types/evolution-api';
 
+// Classe para Conexão Global Evolution API - Gerenciamento de Instâncias
+class EvolutionApiGlobalService {
+  private serverUrl: string;
+  private apiKey: string;
+
+  constructor(serverUrl: string, apiKey: string) {
+    this.serverUrl = serverUrl.replace(/\/$/, ''); // Remove trailing slash
+    this.apiKey = apiKey;
+  }
+
+  private getHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'apikey': this.apiKey,
+    };
+  }
+
+  // CRUD de Instâncias - Operações Globais
+  
+  // Criar nova instância
+  async createInstance(instanceName: string, webhookUrl?: string): Promise<EvolutionApiResponse> {
+    console.log('Criando instância Evolution API:', instanceName);
+    
+    try {
+      const payload: any = {
+        instanceName,
+        token: this.apiKey,
+        qrcode: true,
+        integration: 'WHATSAPP-BAILEYS'
+      };
+
+      // Configurar webhook se fornecido
+      if (webhookUrl) {
+        payload.webhook = webhookUrl;
+        payload.webhook_by_events = false;
+        payload.webhook_base64 = false;
+        payload.events = ['MESSAGES_UPSERT', 'CONNECTION_UPDATE', 'QRCODE_UPDATED'];
+      }
+
+      const response = await fetch(`${this.serverUrl}/instance/create`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      console.log('Resposta criação instância:', data);
+      return data;
+    } catch (error) {
+      console.error('Erro ao criar instância:', error);
+      throw error;
+    }
+  }
+
+  // Listar todas as instâncias
+  async fetchInstances(): Promise<EvolutionApiResponse> {
+    console.log('Buscando instâncias Evolution API');
+    
+    try {
+      const response = await fetch(`${this.serverUrl}/instance/fetchInstances`, {
+        method: 'GET',
+        headers: this.getHeaders(),
+      });
+
+      const data = await response.json();
+      console.log('Instâncias encontradas:', data);
+      return data;
+    } catch (error) {
+      console.error('Erro ao buscar instâncias:', error);
+      throw error;
+    }
+  }
+
+  // Deletar instância
+  async deleteInstance(instanceName: string): Promise<EvolutionApiResponse> {
+    console.log('Deletando instância:', instanceName);
+    
+    try {
+      const response = await fetch(`${this.serverUrl}/instance/delete/${instanceName}`, {
+        method: 'DELETE',
+        headers: this.getHeaders(),
+      });
+
+      const data = await response.json();
+      console.log('Instância deletada:', data);
+      return data;
+    } catch (error) {
+      console.error('Erro ao deletar instância:', error);
+      throw error;
+    }
+  }
+
+  // Obter status de uma instância específica
+  async getInstanceStatus(instanceName: string): Promise<EvolutionApiResponse> {
+    try {
+      const response = await fetch(`${this.serverUrl}/instance/connectionState/${instanceName}`, {
+        method: 'GET',
+        headers: this.getHeaders(),
+      });
+
+      const data = await response.json();
+      console.log('Status da instância:', instanceName, data);
+      return data;
+    } catch (error) {
+      console.error('Erro ao verificar status:', error);
+      throw error;
+    }
+  }
+
+  // Reiniciar instância
+  async restartInstance(instanceName: string): Promise<EvolutionApiResponse> {
+    try {
+      const response = await fetch(`${this.serverUrl}/instance/restart/${instanceName}`, {
+        method: 'PUT',
+        headers: this.getHeaders(),
+      });
+
+      const data = await response.json();
+      console.log('Instância reiniciada:', instanceName, data);
+      return data;
+    } catch (error) {
+      console.error('Erro ao reiniciar instância:', error);
+      throw error;
+    }
+  }
+
+  // Configurar webhook para instância
+  async setInstanceWebhook(instanceName: string, webhookUrl: string, events?: string[]): Promise<EvolutionApiResponse> {
+    console.log('Configurando webhook para instância:', instanceName, webhookUrl);
+    
+    try {
+      const payload = {
+        url: webhookUrl,
+        webhook_by_events: false,
+        webhook_base64: false,
+        events: events || ['MESSAGES_UPSERT', 'CONNECTION_UPDATE', 'QRCODE_UPDATED'],
+      };
+
+      const response = await fetch(`${this.serverUrl}/webhook/${instanceName}`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      console.log('Webhook configurado:', data);
+      return data;
+    } catch (error) {
+      console.error('Erro ao configurar webhook:', error);
+      throw error;
+    }
+  }
+}
+
+// Classe para operações específicas de uma instância
 class EvolutionApiService {
   private config: EvolutionApiConfig;
   private baseUrl: string;
@@ -445,4 +600,4 @@ class EvolutionApiService {
   }
 }
 
-export { EvolutionApiService };
+export { EvolutionApiService, EvolutionApiGlobalService };

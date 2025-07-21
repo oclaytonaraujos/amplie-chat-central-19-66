@@ -162,10 +162,14 @@ serve(async (req) => {
 
     console.log('Mensagem inserida:', mensagem.id)
 
+    // 🔄 WEBHOOK EM TEMPO REAL - Processar eventos da Evolution API
+    // Esta é a parte de "Webhooks para Interações em Tempo Real"
+    console.log('📨 Webhook Evolution API - Recebendo evento em tempo real')
+    
     // Verificar se deve iniciar o chatbot ou processar resposta
     if (novaConversa) {
       // Nova conversa - iniciar fluxo do chatbot
-      console.log('Iniciando fluxo do chatbot para nova conversa')
+      console.log('🚀 Iniciando fluxo do chatbot para nova conversa via webhook')
       
       try {
         const chatbotResponse = await fetch(`${supabaseUrl}/functions/v1/chatbot-engine`, {
@@ -176,14 +180,15 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             conversaId: conversa!.id,
-            iniciarFluxo: true
+            iniciarFluxo: true,
+            source: 'evolution_webhook' // Indicar que veio do webhook
           })
         })
 
         const chatbotResult = await chatbotResponse.json()
-        console.log('Resultado do chatbot:', chatbotResult)
+        console.log('✅ Resultado do chatbot via webhook:', chatbotResult)
       } catch (chatbotError) {
-        console.error('Erro ao iniciar chatbot:', chatbotError)
+        console.error('❌ Erro ao iniciar chatbot via webhook:', chatbotError)
       }
     } else {
       // Conversa existente - verificar se há sessão ativa do chatbot
@@ -195,7 +200,7 @@ serve(async (req) => {
         .single()
 
       if (sessaoAtiva) {
-        console.log('Processando resposta do chatbot')
+        console.log('💬 Processando resposta do chatbot via webhook')
         
         try {
           const chatbotResponse = await fetch(`${supabaseUrl}/functions/v1/chatbot-engine`, {
@@ -206,15 +211,18 @@ serve(async (req) => {
             },
             body: JSON.stringify({
               conversaId: conversa!.id,
-              mensagemCliente: messageText
+              mensagemCliente: messageText,
+              source: 'evolution_webhook' // Indicar que veio do webhook
             })
           })
 
           const chatbotResult = await chatbotResponse.json()
-          console.log('Resultado do chatbot:', chatbotResult)
+          console.log('✅ Resultado do chatbot via webhook:', chatbotResult)
         } catch (chatbotError) {
-          console.error('Erro ao processar chatbot:', chatbotError)
+          console.error('❌ Erro ao processar chatbot via webhook:', chatbotError)
         }
+      } else {
+        console.log('💡 Mensagem recebida via webhook - sem sessão ativa de chatbot')
       }
     }
 
